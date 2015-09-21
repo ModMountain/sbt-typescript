@@ -1,4 +1,5 @@
 /*
+ * Copyright 2015 ModMountain.com
  * Copyright 2014 Groupon.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,7 +87,7 @@ object SbtTypescript extends AutoPlugin {
     noImplicitAny := false,
     moduleKind := "",
     outFile := "",
-    outDir := ((webTarget in Assets).value / "typescript").absolutePath,
+    outDir := ((webTarget in Assets).value / "public").absolutePath,
     removeComments := false,
     JsEngineKeys.parallelism := 1,
     logLevel := Level.Info
