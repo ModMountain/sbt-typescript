@@ -15,11 +15,11 @@
 //
 sbtPlugin := true
 
-organization := "com.arpnetworking"
+organization := "com.modmountain"
 
 name := "sbt-typescript"
 
-version := "0.1.8"
+version := "0.2.0-SNAPSHOT"
 
 scalaVersion := "2.10.5"
 
