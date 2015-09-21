@@ -1,4 +1,5 @@
 /*
+ * Copyright 2015 ModMountain.com
  * Copyright 2014 Groupon.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,14 +30,14 @@
 
     var args = jst.args(process.argv);
     var logger = makeLogger(args.options.logLevel);
-    logger.debug("starting compile");
-    logger.debug("args=" + JSON.stringify(args));
+    logger.debug("Starting compile, args:", JSON.stringify(args));
 
-    function makeLogger (logLevel) {
+    function makeLogger(logLevel) {
         var that = {};
-        that.debug = function (message) {
+        that.debug = function () {
             if (logLevel === 'debug') {
-                console.log(message);
+                //console.log(Array.prototype.slice.call(arguments));
+                console.log(arguments);
             }
         };
 
@@ -73,14 +74,14 @@
     }
 
     function createCompilerSettings(options) {
-        logger.debug("creating compiler settings");
         var compSettings = new typescript.getDefaultCompilerOptions();
-        logger.debug("instantiated");
 
-        compSettings.sourceMap = options.sourceMap;
+        // We don't do any null checks on the settings because our Scala code supplies defaults
+        compSettings.sourceMap =  options.sourceMap;
         compSettings.sourceRoot = options.sourceRoot;
         compSettings.mapRoot = options.mapRoot;
 
+        // Compiler defaults to no module type
         if (options.moduleKind.toLowerCase() == "amd") {
             compSettings.module = 2;
         } else if (options.moduleKind.toLowerCase() == "commonjs") {
@@ -96,27 +97,29 @@
         }
 
         compSettings.out = options.outFile;
-        compSettings.outDir = options.outDir;
         compSettings.removeComments = options.removeComments;
-        compSettings.rootDir = options.rootDir;
-        logger.debug("settings created");
+
+        // These two options are special, defaults are not supplied by the Scala code
+        compSettings.outDir = options.outDir || args.target;
+
+        logger.debug("Using the following compiler settings:", JSON.stringify(compSettings));
 
         return compSettings;
     }
 
-    function replaceFileExtension(file, ext){
+    function replaceFileExtension(file, ext) {
         var oldExt = path.extname(file);
         return file.substring(0, file.length - oldExt.length) + ext;
     }
 
-    function fixSourceMapFile(file){
+    function fixSourceMapFile(file) {
         /*
-        All source .ts files are copied to public folder and reside there side by side with generated .js and js.map files.
-        It means that source maps root at runtime is always '.' and 'sources' array should contain only file name.
-        */
+         All source .ts files are copied to public folder and reside there side by side with generated .js and js.map files.
+         It means that source maps root at runtime is always '.' and 'sources' array should contain only file name.
+         */
 
         var sourceMap = JSON.parse(fs.readFileSync(file, 'utf-8'));
-        sourceMap.sources = sourceMap.sources.map(function(source){
+        sourceMap.sources = sourceMap.sources.map(function (source) {
             return path.basename(source);
         });
         fs.writeFileSync(file, JSON.stringify(sourceMap), 'utf-8');
@@ -127,8 +130,7 @@
         var inputFiles = [];
         var compilerOutputFiles = [];
         var outputFiles = [];
-        var rootDir = "";
-        sourceMaps.forEach(function(map) {
+        sourceMaps.forEach(function (map) {
             // populate inputFiles
             // do normalize to replace path separators for user's OS
             inputFiles.push(path.normalize(map[0]));
@@ -144,19 +146,19 @@
         });
 
         // calculate root dir
-        if(sourceMaps.length){
+        var rootDir = "";
+        if (sourceMaps.length) {
             var inputFile = path.normalize(sourceMaps[0][0]);
             var outputFile = path.normalize(sourceMaps[0][1]);
             rootDir = inputFile.substring(0, inputFile.length - outputFile.length);
         }
 
-        logger.debug("starting compilation of " + inputFiles);
-        var opt = args.options;
-        opt.rootDir = rootDir;
-        opt.outDir = args.target;
-        //compilationResult contains the compiled source and the dependencies
-        var options = createCompilerSettings(opt);
-        logger.debug("options = " + JSON.stringify(options));
+        logger.debug("Starting compilation of", inputFiles);
+
+        // Replace missing user supplied options with defaults
+        var options = createCompilerSettings(args.options);
+        options.rootDir = rootDir;
+        logger.debug("Options:", JSON.stringify(options));
         var compilerHost = typescript.createCompilerHost(options);
         var program = typescript.createProgram(inputFiles, options, compilerHost);
 
@@ -164,7 +166,7 @@
 
 
         var recordDiagnostic = function (d) {
-            logger.debug("recording diagnostic");
+            logger.debug("Recording diagnostic");
             var lineCol = {line: 0, character: 0};
             var fileName = "Global";
             var lineText = "";
@@ -208,19 +210,18 @@
                 severity: sev,
                 lineContent: lineText
             };
-            logger.debug("diagnostic recorded");
+            logger.debug("Diagnostic recorded");
             output.problems.push(problem);
         };
 
-        var recordDiagnostics = function(diagnostics) {
-            diagnostics.forEach(function(diagnostic) {
+        var recordDiagnostics = function (diagnostics) {
+            diagnostics.forEach(function (diagnostic) {
                 recordDiagnostic(diagnostic);
             });
         };
 
-        logger.debug("compiler created");
+        logger.debug("Compiler created, looking for global diagnostics");
 
-        logger.debug("looking for global diagnostics");
         var diagnostics = program.getSyntacticDiagnostics();
         recordDiagnostics(diagnostics);
         if (diagnostics.length === 0) {
@@ -236,25 +237,24 @@
         recordDiagnostics(emitOutput.diagnostics);
 
         var sourceFiles = program.getSourceFiles();
-        logger.debug("got some source files");
+        logger.debug("Found some source files");
         sourceFiles.forEach(function (sourceFile) {
             // have to normalize path due to different OS path separators
             var index = inputFiles.indexOf(path.normalize(sourceFile.fileName));
             if (index === -1) {
-                logger.debug("did not find source file " + sourceFile.fileName + " in list compile list, assuming library or dependency and skipping output");
+                logger.debug("Did not find source file '" + sourceFile.fileName + "' in list compile list, assuming library or dependency and skipping output");
                 return;
             }
-            logger.debug("examining " + sourceFile.fileName);
-            logger.debug("looking for deps");
+            logger.debug("Examining '" + sourceFile.fileName + "' for dependencies");
             var depFiles = sourceFile.referencedFiles;
 
             var file = sourceFile.fileName;
             var deps = [sourceFile.fileName];
 
             if (depFiles !== undefined) {
-                logger.debug("got some deps: " + depFiles);
+                logger.debug("Found dependencies:", JSON.stringify(depFiles));
                 depFiles.forEach(function (dep) {
-                    logger.debug("found referenced file " + dep.fileName);
+                    logger.debug("Found referenced file '" + dep.fileName + "'");
                     deps.push(dep.fileName);
                 });
             }
@@ -262,7 +262,7 @@
             var outputFile = outputFiles[index];
             var outputFileMap = outputFile + ".map";
 
-            if(options.sourceMap){
+            if (options.sourceMap) {
                 // alter source map file to change a thing
                 fixSourceMapFile(outputFileMap);
             }
@@ -276,7 +276,7 @@
             };
             output.results.push(result);
         });
-        logger.debug("output=" + JSON.stringify(output));
+        logger.debug("Compiler output:", JSON.stringify(output));
         return output;
     }
 
