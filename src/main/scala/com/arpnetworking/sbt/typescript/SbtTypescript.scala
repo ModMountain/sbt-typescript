@@ -87,7 +87,7 @@ object SbtTypescript extends AutoPlugin {
     noImplicitAny := false,
     moduleKind := "",
     outFile := "",
-    outDir := ((webTarget in Assets).value / "public").absolutePath,
+    outDir := (webTarget.value / "public" / "main").absolutePath,
     removeComments := false,
     JsEngineKeys.parallelism := 1,
     logLevel := Level.Info
