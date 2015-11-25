@@ -19,7 +19,7 @@ organization := "com.modmountain"
 
 name := "sbt-typescript"
 
-version := "0.2.0-SNAPSHOT"
+version := "0.2.0"
 
 scalaVersion := "2.10.5"
 
@@ -42,37 +42,39 @@ addSbtPlugin("com.typesafe.sbt" %% "sbt-js-engine" % "1.0.2")
 scalacOptions += "-feature"
 
 publishMavenStyle := true
-
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
   if (isSnapshot.value)
     Some("snapshots" at nexus + "content/repositories/snapshots")
   else
-    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
-
-pomIncludeRepository := { _ => false}
-
-pomExtra := (
-  <url>https://github.com/ArpNetworking/sbt-typescript</url>
-    <licenses>
-      <license>
-        <name>Apache 2</name>
-        <url>http://www.apache.org/licenses/LICENSE-2.0</url>
-        <distribution>repo</distribution>
-      </license>
-    </licenses>
-    <scm>
-      <url>git@github.com:ArpNetworking/sbt-typescript.git</url>
-      <connection>scm:git:git@github.com:ArpNetworking/sbt-typescript.git</connection>
-    </scm>
-    <developers>
-      <developer>
-        <id>barp</id>
-        <name>Brandon Arp</name>
-        <url>http://www.arpnetworking.com</url>
-      </developer>
-    </developers>)
+publishArtifact in Test := false
+pomIncludeRepository := { _ => false }
+pomExtra := <url>https://github.com/ModMountain/sbt-typescript</url>
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <url>git@github.com:ModMountain/sbt-typescript.git</url>
+    <connection>scm:git:git@github.com:ModMountain/sbt-typescript.git</connection>
+  </scm>
+  <developers>
+    <developer>
+      <id>barp</id>
+      <name>Brandon Arp</name>
+      <url>http://www.arpnetworking.com</url>
+    </developer>
+    <developer>
+      <id>sirsavary</id>
+      <name>Jesse Savary</name>
+      <url>http://www.jessesavary.com</url>
+    </developer>
+  </developers>
 
 scriptedSettings
 
