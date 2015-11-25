@@ -42,6 +42,7 @@ addSbtPlugin("com.typesafe.sbt" %% "sbt-js-engine" % "1.0.2")
 scalacOptions += "-feature"
 
 publishMavenStyle := true
+
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
   if (isSnapshot.value)
@@ -49,16 +50,16 @@ publishTo := {
   else
     Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
+
 publishArtifact in Test := false
+
 pomIncludeRepository := { _ => false }
-pomExtra := <url>https://github.com/ModMountain/sbt-typescript</url>
-  <licenses>
-    <license>
-      <name>Apache 2</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
+
+licenses := Seq("Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
+
+homepage := Some(url("https://github.com/ModMountain/sbt-typescript"))
+
+pomExtra := (
   <scm>
     <url>git@github.com:ModMountain/sbt-typescript.git</url>
     <connection>scm:git:git@github.com:ModMountain/sbt-typescript.git</connection>
@@ -75,6 +76,7 @@ pomExtra := <url>https://github.com/ModMountain/sbt-typescript</url>
       <url>http://www.jessesavary.com</url>
     </developer>
   </developers>
+  )
 
 scriptedSettings
 
