@@ -15,13 +15,19 @@
 //
 sbtPlugin := true
 
-organization := "com.modmountain"
+organization := "com.modmountain.sbt"
 
 name := "sbt-typescript"
 
-version := "0.2.0"
+version := "0.3.0"
 
-scalaVersion := "2.10.5"
+scalaVersion := "2.10.6"
+
+resolvers ++= Seq(
+  Resolver.mavenLocal,
+  Resolver.typesafeIvyRepo("releases"),
+  Resolver.sonatypeRepo("releases")
+)
 
 libraryDependencies ++= Seq(
   "org.webjars" % "mkdirp" % "0.3.5",
@@ -29,15 +35,7 @@ libraryDependencies ++= Seq(
   "com.typesafe" % "jstranspiler" % "1.0.0"
 )
 
-resolvers ++= Seq(
-  Resolver.mavenLocal,
-  "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/",
-  Resolver.url("sbt snapshot plugins", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots"))(Resolver.ivyStylePatterns),
-  Resolver.sonatypeRepo("snapshots"),
-  "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/snapshots/"
-)
-
-addSbtPlugin("com.typesafe.sbt" %% "sbt-js-engine" % "1.0.2")
+addSbtPlugin("com.typesafe.sbt" %% "sbt-js-engine" % "1.1.3")
 
 scalacOptions += "-feature"
 
